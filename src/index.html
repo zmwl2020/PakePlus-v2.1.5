@@ -1,32 +1,1816 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <link rel="stylesheet" href="styles.css" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>PakePlus App</title>
-        <script type="module" src="/main.js" defer></script>
-    </head>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人工具箱 - 网址备忘录 | 备忘录 | 网页生成器</title>
+    <style>
+        :root {
+            --bg: #f0f2f5;
+            --card-bg: #ffffff;
+            --primary: #4f6ef7;
+            --primary-hover: #3b54db;
+            --primary-light: #eef1ff;
+            --text: #1a1d2e;
+            --text-secondary: #6b7280;
+            --text-muted: #9ca3af;
+            --border: #e5e7eb;
+            --border-light: #f3f4f6;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --danger-light: #fef2f2;
+            --success: #10b981;
+            --success-light: #ecfdf5;
+            --warning: #f59e0b;
+            --warning-light: #fffbeb;
+            --info: #3b82f6;
+            --info-light: #eff6ff;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 10px rgba(0, 0, 0, 0.06);
+            --radius-sm: 8px;
+            --radius: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --font-mono: 'SF Mono', 'Cascadia Code', 'Consolas', 'Monaco', 'Courier New', monospace;
+        }
 
-    <body>
-        <main class="container">
-            <h1>Welcome to PakePlus</h1>
-            <form class="row" id="greet-form">
-                <input id="inputValue" placeholder="Enter a something..." />
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ============ 顶部导航 ============ */
+        .app-header {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-sm);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        .app-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--text);
+            letter-spacing: -0.3px;
+            user-select: none;
+        }
+        .app-logo .logo-icon {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, #4f6ef7, #7c5cfc);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 1.1rem;
+        }
+        .nav-tabs {
+            display: flex;
+            gap: 4px;
+            background: var(--border-light);
+            border-radius: 28px;
+            padding: 4px;
+        }
+        .nav-tab {
+            padding: 9px 20px;
+            border: none;
+            background: transparent;
+            border-radius: 24px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: var(--transition);
+            white-space: nowrap;
+            letter-spacing: -0.1px;
+            position: relative;
+            user-select: none;
+        }
+        .nav-tab:hover {
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.6);
+        }
+        .nav-tab.active {
+            background: #fff;
+            color: var(--primary);
+            font-weight: 600;
+            box-shadow: var(--shadow-sm);
+        }
+        .nav-tab .tab-badge {
+            display: inline-block;
+            background: var(--primary-light);
+            color: var(--primary);
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-left: 6px;
+            font-weight: 600;
+            vertical-align: middle;
+        }
+        .nav-tab.active .tab-badge {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        /* ============ 主容器 ============ */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px 20px 40px;
+        }
+        .tab-content {
+            display: none;
+            animation: fadeSlideIn 0.35s ease;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        @keyframes fadeSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ============ 通用组件 ============ */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-title .icon-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--primary);
+            display: inline-block;
+        }
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 24px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: var(--transition);
+            letter-spacing: -0.1px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            user-select: none;
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(79, 110, 247, 0.3);
+        }
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            box-shadow: 0 4px 14px rgba(79, 110, 247, 0.4);
+            transform: translateY(-1px);
+        }
+        .btn-outline {
+            background: #fff;
+            color: var(--text);
+            border: 1.5px solid var(--border);
+        }
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-light);
+        }
+        .btn-sm {
+            padding: 6px 14px;
+            font-size: 0.8rem;
+            border-radius: 18px;
+        }
+        .btn-xs {
+            padding: 4px 10px;
+            font-size: 0.72rem;
+            border-radius: 14px;
+            font-weight: 500;
+        }
+        .btn-danger {
+            background: var(--danger);
+            color: #fff;
+        }
+        .btn-danger:hover {
+            background: var(--danger-hover);
+        }
+        .btn-ghost {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 6px 8px;
+            border-radius: 6px;
+            transition: var(--transition);
+        }
+        .btn-ghost:hover {
+            background: var(--border-light);
+            color: var(--text);
+        }
+        .btn-icon {
+            width: 34px;
+            height: 34px;
+            padding: 0;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            background: transparent;
+            color: var(--text-secondary);
+            transition: var(--transition);
+            font-size: 1rem;
+        }
+        .btn-icon:hover {
+            background: var(--border-light);
+            color: var(--text);
+        }
+
+        /* 输入框 */
+        .input,
+        .textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            font-family: inherit;
+            transition: var(--transition);
+            background: #fafbfc;
+            color: var(--text);
+            resize: vertical;
+        }
+        .input:focus,
+        .textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 110, 247, 0.1);
+            background: #fff;
+        }
+        .input::placeholder,
+        .textarea::placeholder {
+            color: var(--text-muted);
+        }
+        .input-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .input-icon-wrap {
+            position: relative;
+            flex: 1;
+        }
+        .input-icon-wrap .input {
+            padding-right: 40px;
+        }
+        .input-icon-wrap .toggle-pwd {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-muted);
+            padding: 6px;
+            font-size: 0.85rem;
+            transition: var(--transition);
+            border-radius: 4px;
+        }
+        .input-icon-wrap .toggle-pwd:hover {
+            color: var(--text);
+            background: var(--border-light);
+        }
+
+        /* 标签 */
+        .tag {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 14px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: -0.1px;
+            white-space: nowrap;
+        }
+        .tag-blue {
+            background: #eff6ff;
+            color: #3b82f6;
+        }
+        .tag-orange {
+            background: #fff7ed;
+            color: #f97316;
+        }
+        .tag-green {
+            background: #ecfdf5;
+            color: #10b981;
+        }
+        .tag-red {
+            background: #fef2f2;
+            color: #ef4444;
+        }
+        .tag-purple {
+            background: #f5f3ff;
+            color: #8b5cf6;
+        }
+        .tag-gray {
+            background: #f9fafb;
+            color: #6b7280;
+        }
+
+        /* 卡片 */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            padding: 16px 18px;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+        }
+        .card:hover {
+            box-shadow: var(--shadow-md);
+            border-color: #d1d5db;
+        }
+
+        /* 弹窗 */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.2s ease;
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        .modal {
+            background: #fff;
+            border-radius: var(--radius-lg);
+            padding: 24px 28px;
+            width: 90%;
+            max-width: 560px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+            animation: modalIn 0.3s ease;
+        }
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(0.94) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+        .modal-header h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: -0.2px;
+        }
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: #f3f4f6;
+            cursor: pointer;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            color: var(--text-secondary);
+        }
+        .modal-close:hover {
+            background: #e5e7eb;
+            color: var(--text);
+        }
+        .form-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .form-row>* {
+            flex: 1;
+            min-width: 120px;
+        }
+        .form-group {
+            margin-bottom: 14px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-secondary);
+            letter-spacing: -0.1px;
+        }
+
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--text-muted);
+        }
+        .empty-state .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 12px;
+            opacity: 0.6;
+        }
+        .empty-state p {
+            font-size: 0.95rem;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a1d2e;
+            color: #fff;
+            padding: 10px 22px;
+            border-radius: 24px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            z-index: 999;
+            box-shadow: var(--shadow-lg);
+            animation: toastIn 0.35s ease, toastOut 0.35s ease 2s forwards;
+            pointer-events: none;
+            letter-spacing: -0.1px;
+        }
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+        @keyframes toastOut {
+            from {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-15px);
+            }
+        }
+
+        /* ============ 网址备忘录 ============ */
+        .url-memo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 14px;
+        }
+        .url-card {
+            cursor: pointer;
+            position: relative;
+            border-left: 4px solid transparent;
+            transition: var(--transition);
+        }
+        .url-card:hover {
+            border-left-color: var(--primary);
+        }
+        .url-card .url-domain {
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 0.95rem;
+            letter-spacing: -0.2px;
+            margin-bottom: 4px;
+            word-break: break-all;
+        }
+        .url-card .url-notes {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+            font-style: italic;
+        }
+        .url-card .url-meta {
+            display: flex;
+            gap: 12px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 6px;
+            flex-wrap: wrap;
+        }
+        .url-card .url-meta span {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+        .url-card .url-actions {
+            display: flex;
+            gap: 4px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+        .url-card .url-actions .btn-xs {
+            font-size: 0.7rem;
+            padding: 3px 9px;
+            border-radius: 12px;
+        }
+        .pwd-display {
+            font-family: var(--font-mono);
+            letter-spacing: 1px;
+            background: #f9fafb;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.82rem;
+            cursor: pointer;
+            user-select: all;
+            transition: var(--transition);
+            border: 1px dashed transparent;
+        }
+        .pwd-display:hover {
+            border-color: #d1d5db;
+            background: #f3f4f6;
+        }
+        .pwd-hidden {
+            letter-spacing: 2px;
+            color: #9ca3af;
+        }
+
+        /* ============ 备忘录 ============ */
+        .memo-toolbar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+        .memo-toolbar .input {
+            max-width: 300px;
+            min-width: 180px;
+        }
+        .memo-toolbar select {
+            padding: 10px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            background: #fafbfc;
+            cursor: pointer;
+            color: var(--text);
+            font-family: inherit;
+            transition: var(--transition);
+        }
+        .memo-toolbar select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 110, 247, 0.1);
+        }
+        .memo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 14px;
+        }
+        .memo-card {
+            position: relative;
+            border-top: 3px solid transparent;
+            transition: var(--transition);
+        }
+        .memo-card.type-pain {
+            border-top-color: #ef4444;
+        }
+        .memo-card.type-suggestion {
+            border-top-color: #10b981;
+        }
+        .memo-card.type-note {
+            border-top-color: #3b82f6;
+        }
+        .memo-card.type-todo {
+            border-top-color: #f59e0b;
+        }
+        .memo-card .memo-title {
+            font-weight: 700;
+            font-size: 1rem;
+            letter-spacing: -0.2px;
+            margin-bottom: 4px;
+        }
+        .memo-card .memo-content {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .memo-card .memo-meta {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-top: 8px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        .memo-card .memo-actions {
+            display: flex;
+            gap: 4px;
+            margin-top: 8px;
+        }
+        .priority-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .priority-high {
+            background: #ef4444;
+            box-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
+        }
+        .priority-medium {
+            background: #f59e0b;
+            box-shadow: 0 0 6px rgba(245, 158, 11, 0.4);
+        }
+        .priority-low {
+            background: #9ca3af;
+        }
+
+        /* ============ 网页生成器 ============ */
+        .generator-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            min-height: 520px;
+        }
+        @media (max-width: 900px) {
+            .generator-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+        .code-panel,
+        .preview-panel {
+            display: flex;
+            flex-direction: column;
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background: #fff;
+            box-shadow: var(--shadow-sm);
+        }
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: #fafbfc;
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+            font-size: 0.85rem;
+            letter-spacing: -0.1px;
+            color: var(--text-secondary);
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .code-editor {
+            flex: 1;
+            width: 100%;
+            border: none;
+            padding: 16px;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            line-height: 1.7;
+            resize: none;
+            background: #1e1e2e;
+            color: #e0e0e0;
+            tab-size: 2;
+            min-height: 400px;
+        }
+        .code-editor:focus {
+            outline: none;
+            box-shadow: inset 0 0 0 2px rgba(79, 110, 247, 0.4);
+        }
+        .preview-iframe {
+            flex: 1;
+            width: 100%;
+            border: none;
+            background: #fff;
+            min-height: 400px;
+        }
+        .generator-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+        .template-chips {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .template-chip {
+            padding: 5px 12px;
+            border-radius: 16px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            border: 1.5px solid var(--border);
+            background: #fff;
+            transition: var(--transition);
+            white-space: nowrap;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+        .template-chip:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-light);
+        }
+        .template-chip.active-chip {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+
+        /* ============ 响应式 ============ */
+        @media (max-width: 768px) {
+            .app-header {
+                padding: 0 12px;
+                height: 56px;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .app-logo {
+                font-size: 1rem;
+            }
+            .app-logo .logo-icon {
+                width: 30px;
+                height: 30px;
+                font-size: 0.9rem;
+                border-radius: 6px;
+            }
+            .nav-tab {
+                padding: 7px 12px;
+                font-size: 0.78rem;
+                border-radius: 20px;
+            }
+            .nav-tabs {
+                border-radius: 22px;
+                padding: 3px;
+            }
+            .main-container {
+                padding: 16px 8px 30px;
+            }
+            .url-memo-grid,
+            .memo-grid {
+                grid-template-columns: 1fr;
+            }
+            .generator-layout {
+                grid-template-columns: 1fr;
+            }
+            .modal {
+                width: 95%;
+                padding: 18px 16px;
+                border-radius: var(--radius);
+            }
+            .section-title {
+                font-size: 1.1rem;
+            }
+            .form-row {
+                flex-direction: column;
+                gap: 8px;
+            }
+            .memo-toolbar .input {
+                max-width: 100%;
+                flex: 1;
+            }
+            .code-editor,
+            .preview-iframe {
+                min-height: 280px;
+            }
+        }
+        @media (max-width: 480px) {
+            .nav-tab {
+                padding: 6px 9px;
+                font-size: 0.7rem;
+                border-radius: 16px;
+                gap: 2px;
+            }
+            .nav-tab .tab-badge {
+                font-size: 0.6rem;
+                padding: 1px 6px;
+                margin-left: 2px;
+            }
+            .btn {
+                padding: 8px 14px;
+                font-size: 0.8rem;
+                border-radius: 20px;
+            }
+            .card {
+                padding: 12px 14px;
+                border-radius: var(--radius-sm);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== 顶部导航 ==================== -->
+    <header class="app-header">
+        <div class="app-logo">
+            <div class="logo-icon">⚡</div>
+            <span>个人工具箱</span>
+        </div>
+        <nav class="nav-tabs" id="navTabs">
+            <button class="nav-tab active" data-tab="tab-urlmemo">
+                🔗 网址备忘录 <span class="tab-badge" id="urlCount">0</span>
+            </button>
+            <button class="nav-tab" data-tab="tab-memo">
+                📝 备忘录 <span class="tab-badge" id="memoCount">0</span>
+            </button>
+            <button class="nav-tab" data-tab="tab-generator">
+                💻 网页生成器
+            </button>
+        </nav>
+    </header>
+
+    <!-- ==================== 主内容区 ==================== -->
+    <div class="main-container">
+
+        <!-- ========== Tab1: 网址备忘录 ========== -->
+        <div class="tab-content active" id="tab-urlmemo">
+            <div class="section-header">
+                <div class="section-title"><span class="icon-dot"></span>网址备忘录</div>
+                <button class="btn btn-primary" onclick="openUrlMemoForm()">＋ 添加网址</button>
+            </div>
+            <div class="url-memo-grid" id="urlMemoList"></div>
+            <div class="empty-state" id="urlEmpty" style="display:none;">
+                <div class="empty-icon">🔗</div>
+                <p>还没有保存任何网址</p>
+                <p style="font-size:0.8rem;color:#b0b7c3;">点击右上角按钮添加你的第一个网址</p>
+            </div>
+        </div>
+
+        <!-- ========== Tab2: 备忘录 ========== -->
+        <div class="tab-content" id="tab-memo">
+            <div class="section-header">
+                <div class="section-title"><span class="icon-dot"></span>备忘录</div>
+                <button class="btn btn-primary" onclick="openMemoForm()">＋ 新建备忘</button>
+            </div>
+            <div class="memo-toolbar">
+                <input type="text" class="input" placeholder="🔍 搜索备忘录..." id="memoSearch" oninput="renderMemos()">
+                <select id="memoTypeFilter" onchange="renderMemos()">
+                    <option value="all">全部类型</option>
+                    <option value="pain">🔴 痛点</option>
+                    <option value="suggestion">🟢 建议</option>
+                    <option value="note">🔵 笔记</option>
+                    <option value="todo">🟡 待办</option>
+                </select>
+                <select id="memoPriorityFilter" onchange="renderMemos()">
+                    <option value="all">全部优先级</option>
+                    <option value="high">🔴 高优先级</option>
+                    <option value="medium">🟡 中优先级</option>
+                    <option value="low">⚪ 低优先级</option>
+                </select>
+            </div>
+            <div class="memo-grid" id="memoList"></div>
+            <div class="empty-state" id="memoEmpty" style="display:none;">
+                <div class="empty-icon">📝</div>
+                <p>还没有备忘录</p>
+                <p style="font-size:0.8rem;color:#b0b7c3;">记录痛点、建议、笔记，让灵感不再丢失</p>
+            </div>
+        </div>
+
+        <!-- ========== Tab3: 网页生成器 ========== -->
+        <div class="tab-content" id="tab-generator">
+            <div class="section-header">
+                <div class="section-title"><span class="icon-dot"></span>网页生成器</div>
+                <div class="template-chips" id="templateChips">
+                    <span class="template-chip active-chip" data-template="blank" onclick="loadTemplate('blank', this)">空白页面</span>
+                    <span class="template-chip" data-template="basic" onclick="loadTemplate('basic', this)">基础HTML</span>
+                    <span class="template-chip" data-template="card" onclick="loadTemplate('card', this)">卡片页面</span>
+                    <span class="template-chip" data-template="landing" onclick="loadTemplate('landing', this)">落地页</span>
+                    <span class="template-chip" data-template="dashboard" onclick="loadTemplate('dashboard', this)">仪表盘</span>
+                </div>
+            </div>
+            <div class="generator-layout">
+                <div class="code-panel">
+                    <div class="panel-header">
+                        <span>📄 HTML 代码编辑器</span>
+                        <button class="btn btn-sm btn-outline" onclick="formatCode()" title="简单格式化">✨ 格式化</button>
+                    </div>
+                    <textarea class="code-editor" id="htmlCodeEditor" placeholder="在此输入HTML代码..."></textarea>
+                </div>
+                <div class="preview-panel">
+                    <div class="panel-header">
+                        <span>👁️ 实时预览</span>
+                        <button class="btn btn-sm btn-outline" onclick="refreshPreview()">🔄 刷新预览</button>
+                    </div>
+                    <iframe class="preview-iframe" id="previewFrame" title="预览"></iframe>
+                </div>
+            </div>
+            <div class="generator-actions">
+                <button class="btn btn-primary" onclick="refreshPreview()">🔄 刷新预览</button>
+                <button class="btn btn-outline" onclick="openInNewTab()">🔗 在新标签页打开</button>
+                <button class="btn btn-outline" onclick="downloadHTML()">💾 下载HTML文件</button>
+                <button class="btn btn-outline" onclick="saveTemplate()">📌 保存当前代码</button>
+                <button class="btn btn-outline" onclick="loadSavedTemplate()">📂 加载已保存代码</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 网址备忘录弹窗 ==================== -->
+    <div class="modal-overlay" id="urlMemoModal" style="display:none;" onclick="closeUrlMemoForm(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 id="urlMemoModalTitle">添加网址</h3>
+                <button class="modal-close" onclick="closeUrlMemoForm()">✕</button>
+            </div>
+            <form id="urlMemoForm" onsubmit="saveUrlMemo(event)">
+                <input type="hidden" id="urlMemoId">
+                <div class="form-group">
+                    <label>🌐 网址 URL *</label>
+                    <input type="url" class="input" id="urlMemoUrl" placeholder="https://example.com" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>👤 账号</label>
+                        <input type="text" class="input" id="urlMemoAccount" placeholder="用户名/邮箱">
+                    </div>
+                    <div class="form-group">
+                        <label>🔒 密码</label>
+                        <div class="input-icon-wrap">
+                            <input type="password" class="input" id="urlMemoPassword" placeholder="密码">
+                            <button type="button" class="toggle-pwd" id="togglePwdBtn" onclick="togglePasswordInput()" title="显示/隐藏">👁️</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>📝 备注</label>
+                    <input type="text" class="input" id="urlMemoNotes" placeholder="备注信息（可选）">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">💾 保存</button>
             </form>
-            <div class="resultBox">
-                <span>result: </span>
-                <span id="result"></span>
+        </div>
+    </div>
+
+    <!-- ==================== 备忘录弹窗 ==================== -->
+    <div class="modal-overlay" id="memoModal" style="display:none;" onclick="closeMemoForm(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 id="memoModalTitle">新建备忘</h3>
+                <button class="modal-close" onclick="closeMemoForm()">✕</button>
             </div>
-            <div class="invokeBox">
-                <button id="openUrl">open_url_browser</button>
-                <button id="openUrlNew">open_url_new</button>
-                <button id="runCommand">run_command</button>
-                <button id="downloadFile">download_file</button>
-                <button id="getExeDir">get_exe_dir</button>
-                <button id="getEnvVar">get_env_var</button>
-                <button id="findPort">find_port</button>
+            <form id="memoForm" onsubmit="saveMemo(event)">
+                <input type="hidden" id="memoId">
+                <div class="form-group">
+                    <label>📌 标题 *</label>
+                    <input type="text" class="input" id="memoTitle" placeholder="输入标题..." required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>🏷️ 类型</label>
+                        <select class="input" id="memoType" style="cursor:pointer;">
+                            <option value="pain">🔴 痛点</option>
+                            <option value="suggestion">🟢 建议</option>
+                            <option value="note">🔵 笔记</option>
+                            <option value="todo">🟡 待办</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>⚡ 优先级</label>
+                        <select class="input" id="memoPriority" style="cursor:pointer;">
+                            <option value="high">🔴 高</option>
+                            <option value="medium">🟡 中</option>
+                            <option value="low">⚪ 低</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>🏷️ 标签（逗号分隔）</label>
+                    <input type="text" class="input" id="memoTags" placeholder="例如：前端, 设计, 性能优化">
+                </div>
+                <div class="form-group">
+                    <label>📄 内容</label>
+                    <textarea class="textarea" id="memoContent" rows="5" placeholder="详细记录痛点、建议或笔记内容..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">💾 保存</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast容器 -->
+    <div id="toastContainer"></div>
+
+    <script>
+        (function() {
+            // ==================== 数据管理 ====================
+            const STORAGE_KEYS = {
+                urlMemos: 'toolbox_url_memos',
+                memos: 'toolbox_memos',
+                htmlTemplates: 'toolbox_html_templates',
+                currentHtmlCode: 'toolbox_current_html',
+            };
+
+            function getData(key, defaultValue = []) {
+                try {
+                    const raw = localStorage.getItem(key);
+                    return raw ? JSON.parse(raw) : defaultValue;
+                } catch (e) {
+                    return defaultValue;
+                }
+            }
+
+            function setData(key, value) {
+                try {
+                    localStorage.setItem(key, JSON.stringify(value));
+                } catch (e) {
+                    showToast('⚠️ 存储空间不足，请清理旧数据');
+                }
+            }
+
+            function generateId() {
+                return Date.now().toString(36) + Math.random().toString(36).substr(2, 6);
+            }
+
+            // ==================== Toast ====================
+            function showToast(msg) {
+                const container = document.getElementById('toastContainer');
+                const toast = document.createElement('div');
+                toast.className = 'toast';
+                toast.textContent = msg;
+                container.appendChild(toast);
+                setTimeout(() => toast.remove(), 2500);
+            }
+
+            // ==================== Tab切换 ====================
+            const navTabs = document.querySelectorAll('.nav-tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            navTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const targetId = tab.dataset.tab;
+                    navTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    tabContents.forEach(tc => tc.classList.remove('active'));
+                    const target = document.getElementById(targetId);
+                    if (target) {
+                        target.classList.add('active');
+                        // 切换到生成器时刷新预览
+                        if (targetId === 'tab-generator') {
+                            refreshPreview();
+                        }
+                    }
+                });
+            });
+
+            // ==================== 网址备忘录 ====================
+            let urlMemos = getData(STORAGE_KEYS.urlMemos);
+            let editingUrlMemoId = null;
+
+            function saveUrlMemos() {
+                setData(STORAGE_KEYS.urlMemos, urlMemos);
+                renderUrlMemos();
+                updateUrlCount();
+            }
+
+            function updateUrlCount() {
+                document.getElementById('urlCount').textContent = urlMemos.length;
+            }
+
+            function renderUrlMemos() {
+                const list = document.getElementById('urlMemoList');
+                const empty = document.getElementById('urlEmpty');
+                if (urlMemos.length === 0) {
+                    list.innerHTML = '';
+                    empty.style.display = 'block';
+                } else {
+                    empty.style.display = 'none';
+                    list.innerHTML = urlMemos.map((item, index) => {
+                        const domain = extractDomain(item.url);
+                        const pwdHidden = `<span class="pwd-display pwd-hidden" onclick="event.stopPropagation();togglePwdDisplay(this, '${escapeHtml(item.password)}')" title="点击显示密码">••••••••</span>`;
+                        return `
+                                <div class="card url-card" onclick="openUrl('${escapeHtml(item.url)}')" title="点击跳转到 ${escapeHtml(item.url)}">
+                                    <div class="url-domain">🌐 ${escapeHtml(domain)}</div>
+                                    <div class="url-meta">
+                                        <span>👤 ${item.account ? escapeHtml(item.account) : '<em style="color:#ccc;">未设置</em>'}</span>
+                                        <span>🔒 ${pwdHidden}</span>
+                                    </div>
+                                    ${item.notes ? `<div class="url-notes">💬 ${escapeHtml(item.notes)}</div>` : ''}
+                                    <div class="url-actions" onclick="event.stopPropagation();">
+                                        <button class="btn-xs btn-outline" onclick="copyToClipboard('${escapeHtml(item.account || '')}', '账号')" title="复制账号">📋 复制账号</button>
+                                        <button class="btn-xs btn-outline" onclick="copyToClipboard('${escapeHtml(item.password || '')}', '密码')" title="复制密码">🔑 复制密码</button>
+                                        <button class="btn-xs btn-outline" onclick="editUrlMemo('${item.id}')" title="编辑">✏️</button>
+                                        <button class="btn-xs btn-danger" onclick="deleteUrlMemo('${item.id}')" title="删除">🗑️</button>
+                                    </div>
+                                </div>
+                            `;
+                    }).join('');
+                }
+                updateUrlCount();
+            }
+
+            function extractDomain(url) {
+                try {
+                    const u = new URL(url);
+                    return u.hostname;
+                } catch (e) {
+                    return url;
+                }
+            }
+
+            function escapeHtml(str) {
+                if (!str) return '';
+                const div = document.createElement('div');
+                div.textContent = str;
+                return div.innerHTML;
+            }
+
+            function openUrl(url) {
+                if (!url) return;
+                let finalUrl = url;
+                if (!/^https?:\/\//i.test(finalUrl)) {
+                    finalUrl = 'https://' + finalUrl;
+                }
+                window.open(finalUrl, '_blank', 'noopener,noreferrer');
+            }
+
+            function togglePwdDisplay(el, realPwd) {
+                if (el.classList.contains('pwd-hidden')) {
+                    el.classList.remove('pwd-hidden');
+                    el.textContent = realPwd || '(空)';
+                    el.title = '点击隐藏密码';
+                } else {
+                    el.classList.add('pwd-hidden');
+                    el.textContent = '••••••••';
+                    el.title = '点击显示密码';
+                }
+            }
+
+            function copyToClipboard(text, label) {
+                if (!text) {
+                    showToast(`⚠️ ${label}为空，无法复制`);
+                    return;
+                }
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast(`✅ ${label}已复制到剪贴板`);
+                }).catch(() => {
+                    // fallback
+                    const ta = document.createElement('textarea');
+                    ta.value = text;
+                    ta.style.position = 'fixed';
+                    ta.style.opacity = '0';
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                    showToast(`✅ ${label}已复制到剪贴板`);
+                });
+            }
+
+            function openUrlMemoForm(id = null) {
+                editingUrlMemoId = id;
+                const modal = document.getElementById('urlMemoModal');
+                const title = document.getElementById('urlMemoModalTitle');
+                document.getElementById('urlMemoId').value = '';
+                document.getElementById('urlMemoUrl').value = '';
+                document.getElementById('urlMemoAccount').value = '';
+                document.getElementById('urlMemoPassword').value = '';
+                document.getElementById('urlMemoNotes').value = '';
+                document.getElementById('urlMemoPassword').type = 'password';
+                document.getElementById('togglePwdBtn').textContent = '👁️';
+
+                if (id) {
+                    title.textContent = '编辑网址';
+                    const item = urlMemos.find(m => m.id === id);
+                    if (item) {
+                        document.getElementById('urlMemoId').value = item.id;
+                        document.getElementById('urlMemoUrl').value = item.url || '';
+                        document.getElementById('urlMemoAccount').value = item.account || '';
+                        document.getElementById('urlMemoPassword').value = item.password || '';
+                        document.getElementById('urlMemoNotes').value = item.notes || '';
+                    }
+                } else {
+                    title.textContent = '添加网址';
+                }
+                modal.style.display = 'flex';
+            }
+
+            function closeUrlMemoForm(event) {
+                if (event && event.target !== document.getElementById('urlMemoModal')) return;
+                document.getElementById('urlMemoModal').style.display = 'none';
+                editingUrlMemoId = null;
+            }
+
+            function togglePasswordInput() {
+                const pwdInput = document.getElementById('urlMemoPassword');
+                const btn = document.getElementById('togglePwdBtn');
+                if (pwdInput.type === 'password') {
+                    pwdInput.type = 'text';
+                    btn.textContent = '🙈';
+                } else {
+                    pwdInput.type = 'password';
+                    btn.textContent = '👁️';
+                }
+            }
+
+            function saveUrlMemo(event) {
+                event.preventDefault();
+                const id = document.getElementById('urlMemoId').value;
+                const url = document.getElementById('urlMemoUrl').value.trim();
+                const account = document.getElementById('urlMemoAccount').value.trim();
+                const password = document.getElementById('urlMemoPassword').value;
+                const notes = document.getElementById('urlMemoNotes').value.trim();
+
+                if (!url) {
+                    showToast('⚠️ 请输入网址URL');
+                    return;
+                }
+
+                const data = { url, account, password, notes, updatedAt: Date.now() };
+
+                if (id) {
+                    const idx = urlMemos.findIndex(m => m.id === id);
+                    if (idx >= 0) {
+                        urlMemos[idx] = { ...urlMemos[idx], ...data };
+                    }
+                } else {
+                    urlMemos.unshift({ id: generateId(), ...data, createdAt: Date.now() });
+                }
+
+                saveUrlMemos();
+                closeUrlMemoForm();
+                showToast('✅ 网址已保存');
+            }
+
+            function editUrlMemo(id) {
+                openUrlMemoForm(id);
+            }
+
+            function deleteUrlMemo(id) {
+                if (confirm('确定要删除这条网址记录吗？此操作不可恢复。')) {
+                    urlMemos = urlMemos.filter(m => m.id !== id);
+                    saveUrlMemos();
+                    showToast('🗑️ 已删除');
+                }
+            }
+
+            // ==================== 备忘录 ====================
+            let memos = getData(STORAGE_KEYS.memos);
+            let editingMemoId = null;
+
+            function saveMemos() {
+                setData(STORAGE_KEYS.memos, memos);
+                renderMemos();
+                updateMemoCount();
+            }
+
+            function updateMemoCount() {
+                document.getElementById('memoCount').textContent = memos.length;
+            }
+
+            function getMemoTypeLabel(type) {
+                const map = {
+                    'pain': '🔴 痛点',
+                    'suggestion': '🟢 建议',
+                    'note': '🔵 笔记',
+                    'todo': '🟡 待办'
+                };
+                return map[type] || type;
+            }
+
+            function getMemoTypeClass(type) {
+                const map = {
+                    'pain': 'type-pain',
+                    'suggestion': 'type-suggestion',
+                    'note': 'type-note',
+                    'todo': 'type-todo'
+                };
+                return map[type] || '';
+            }
+
+            function getPriorityLabel(priority) {
+                const map = { 'high': '🔴 高', 'medium': '🟡 中', 'low': '⚪ 低' };
+                return map[priority] || priority;
+            }
+
+            function getPriorityClass(priority) {
+                const map = { 'high': 'priority-high', 'medium': 'priority-medium', 'low': 'priority-low' };
+                return map[priority] || '';
+            }
+
+            function getTagClass(index) {
+                const classes = ['tag-blue', 'tag-orange', 'tag-green', 'tag-purple', 'tag-red', 'tag-gray'];
+                return classes[index % classes.length];
+            }
+
+            function renderMemos() {
+                const list = document.getElementById('memoList');
+                const empty = document.getElementById('memoEmpty');
+                const searchTerm = (document.getElementById('memoSearch')?.value || '').toLowerCase();
+                const typeFilter = document.getElementById('memoTypeFilter')?.value || 'all';
+                const priorityFilter = document.getElementById('memoPriorityFilter')?.value || 'all';
+
+                let filtered = [...memos];
+
+                if (searchTerm) {
+                    filtered = filtered.filter(m =>
+                        (m.title || '').toLowerCase().includes(searchTerm) ||
+                        (m.content || '').toLowerCase().includes(searchTerm) ||
+                        (m.tags || '').toLowerCase().includes(searchTerm)
+                    );
+                }
+                if (typeFilter !== 'all') {
+                    filtered = filtered.filter(m => m.type === typeFilter);
+                }
+                if (priorityFilter !== 'all') {
+                    filtered = filtered.filter(m => m.priority === priorityFilter);
+                }
+
+                // 按更新时间倒序
+                filtered.sort((a, b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0));
+
+                if (filtered.length === 0) {
+                    list.innerHTML = '';
+                    empty.style.display = 'block';
+                } else {
+                    empty.style.display = 'none';
+                    list.innerHTML = filtered.map(item => {
+                        const tags = (item.tags || '').split(',').map(t => t.trim()).filter(Boolean);
+                        const tagsHtml = tags.map((t, i) =>
+                            `<span class="tag ${getTagClass(i)}">${escapeHtml(t)}</span>`
+                        ).join('');
+                        const typeClass = getMemoTypeClass(item.type);
+                        const priorityClass = getPriorityClass(item.priority);
+                        const timeStr = new Date(item.updatedAt || item.createdAt).toLocaleString(
+                            'zh-CN', { month: 'short', day: 'numeric', hour: '2-digit',
+                                minute: '2-digit' });
+                        return `
+                                <div class="card memo-card ${typeClass}">
+                                    <div class="memo-title">
+                                        <span class="priority-dot ${priorityClass}" title="${getPriorityLabel(item.priority)}"></span>
+                                        ${escapeHtml(item.title || '无标题')}
+                                    </div>
+                                    ${item.content ? `<div class="memo-content">${escapeHtml(item.content)}</div>` : ''}
+                                    <div class="memo-meta">
+                                        <span>${getMemoTypeLabel(item.type)}</span>
+                                        <span>🕐 ${timeStr}</span>
+                                        ${tagsHtml}
+                                    </div>
+                                    <div class="memo-actions">
+                                        <button class="btn-xs btn-outline" onclick="editMemo('${item.id}')">✏️ 编辑</button>
+                                        <button class="btn-xs btn-outline" onclick="copyToClipboard('${escapeHtml(item.content || '')}', '内容')">📋 复制</button>
+                                        <button class="btn-xs btn-danger" onclick="deleteMemo('${item.id}')">🗑️ 删除</button>
+                                    </div>
+                                </div>
+                            `;
+                    }).join('');
+                }
+                updateMemoCount();
+            }
+
+            function openMemoForm(id = null) {
+                editingMemoId = id;
+                const modal = document.getElementById('memoModal');
+                const title = document.getElementById('memoModalTitle');
+                document.getElementById('memoId').value = '';
+                document.getElementById('memoTitle').value = '';
+                document.getElementById('memoType').value = 'pain';
+                document.getElementById('memoPriority').value = 'medium';
+                document.getElementById('memoTags').value = '';
+                document.getElementById('memoContent').value = '';
+
+                if (id) {
+                    title.textContent = '编辑备忘';
+                    const item = memos.find(m => m.id === id);
+                    if (item) {
+                        document.getElementById('memoId').value = item.id;
+                        document.getElementById('memoTitle').value = item.title || '';
+                        document.getElementById('memoType').value = item.type || 'pain';
+                        document.getElementById('memoPriority').value = item.priority || 'medium';
+                        document.getElementById('memoTags').value = item.tags || '';
+                        document.getElementById('memoContent').value = item.content || '';
+                    }
+                } else {
+                    title.textContent = '新建备忘';
+                }
+                modal.style.display = 'flex';
+            }
+
+            function closeMemoForm(event) {
+                if (event && event.target !== document.getElementById('memoModal')) return;
+                document.getElementById('memoModal').style.display = 'none';
+                editingMemoId = null;
+            }
+
+            function saveMemo(event) {
+                event.preventDefault();
+                const id = document.getElementById('memoId').value;
+                const title = document.getElementById('memoTitle').value.trim();
+                const type = document.getElementById('memoType').value;
+                const priority = document.getElementById('memoPriority').value;
+                const tags = document.getElementById('memoTags').value.trim();
+                const content = document.getElementById('memoContent').value.trim();
+
+                if (!title) {
+                    showToast('⚠️ 请输入标题');
+                    return;
+                }
+
+                const data = { title, type, priority, tags, content, updatedAt: Date.now() };
+
+                if (id) {
+                    const idx = memos.findIndex(m => m.id === id);
+                    if (idx >= 0) {
+                        memos[idx] = { ...memos[idx], ...data };
+                    }
+                } else {
+                    memos.unshift({ id: generateId(), ...data, createdAt: Date.now() });
+                }
+
+                saveMemos();
+                closeMemoForm();
+                showToast('✅ 备忘已保存');
+            }
+
+            function editMemo(id) {
+                openMemoForm(id);
+            }
+
+            function deleteMemo(id) {
+                if (confirm('确定要删除这条备忘录吗？此操作不可恢复。')) {
+                    memos = memos.filter(m => m.id !== id);
+                    saveMemos();
+                    showToast('🗑️ 已删除');
+                }
+            }
+
+            // ==================== 网页生成器 ====================
+            const defaultTemplates = {
+                blank: '',
+                basic: `<!DOCTYPE html>
+        <html lang="zh-CN">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>我的网页</title>
+            <style>
+                body { font-family: sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; line-height: 1.8; }
+                h1 { color: #333; }
+            </style>
+        </head>
+        <body>
+            <h1>👋 你好，世界！</h1>
+            <p>这是一个基础的HTML页面。</p>
+        </body>
+        </html>`,
+                card: `<!DOCTYPE html>
+        <html lang="zh-CN">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>卡片展示</title>
+            <style>
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                body { font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f0f2f5; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+                .card { background: #fff; border-radius: 16px; padding: 30px; max-width: 400px; width: 90%; box-shadow: 0 8px 30px rgba(0,0,0,0.1); text-align: center; }
+                .card h2 { color: #1a1d2e; margin-bottom: 10px; }
+                .card p { color: #6b7280; line-height: 1.6; }
+                .card .btn { display: inline-block; margin-top: 16px; padding: 10px 24px; background: #4f6ef7; color: #fff; border-radius: 24px; text-decoration: none; font-weight: 600; transition: 0.2s; }
+                .card .btn:hover { background: #3b54db; transform: translateY(-2px); }
+            </style>
+        </head>
+        <body>
+            <div class="card">
+                <h2>🎨 精美卡片</h2>
+                <p>这是一个带阴影和圆角的卡片组件，适合展示内容。</p>
+                <a href="#" class="btn">了解更多</a>
             </div>
-        </main>
-    </body>
+        </body>
+        </html>`,
+                landing: `<!DOCTYPE html>
+        <html lang="zh-CN">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>产品落地页</title>
+            <style>
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                body { font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+                .hero { background: linear-gradient(135deg, #4f6ef7, #7c5cfc); color: #fff; text-align: center; padding: 80px 20px; }
+                .hero h1 { font-size: 2.5rem; margin-bottom: 12px; letter-spacing: -1px; }
+                .hero p { font-size: 1.2rem; opacity: 0.9; margin-bottom: 24px; }
+                .hero .cta { display: inline-block; padding: 12px 32px; background: #fff; color: #4f6ef7; border-radius: 28px; text-decoration: none; font-weight: 700; font-size: 1rem; transition: 0.2s; }
+                .hero .cta:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
+                .features { display: flex; flex-wrap: wrap; justify-content: center; gap: 24px; padding: 50px 20px; max-width: 1000px; margin: 0 auto; }
+                .feature { flex: 1; min-width: 200px; max-width: 280px; text-align: center; padding: 20px; }
+                .feature .icon { font-size: 2.5rem; margin-bottom: 10px; }
+                .feature h3 { margin-bottom: 6px; color: #1a1d2e; }
+                .feature p { color: #6b7280; font-size: 0.9rem; }
+            </style>
+        </head>
+        <body>
+            <section class="hero">
+                <h1>🚀 让创意变为现实</h1>
+                <p>简单、高效、美观的解决方案</p>
+                <a href="#" class="cta">立即体验</a>
+            </section>
+            <section class="features">
+                <div class="feature"><div class="icon">⚡</div><h3>极速</h3><p>毫秒级响应，流畅体验</p></div>
+                <div class="feature"><div class="icon">🔒</div><h3>安全</h3><p>数据加密，安心使用</p></div>
+                <div class="feature"><div class="icon">🎨</div><h3>美观</h3><p>精心设计，赏心悦目</p></div>
+            </section>
+        </body>
+        </html>`,
+                dashboard: `<!DOCTYPE html>
+        <html lang="zh-CN">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>仪表盘</title>
+            <style>
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                body { font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f5f6fa; padding: 24px; }
+                .dashboard { max-width: 1200px; margin: 0 auto; }
+                .dashboard h1 { color: #1a1d2e; margin-bottom: 20px; font-size: 1.8rem; }
+                .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+                .stat-card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+                .stat-card .label { color: #6b7280; font-size: 0.85rem; margin-bottom: 4px; }
+                .stat-card .value { font-size: 2rem; font-weight: 700; color: #1a1d2e; }
+                .stat-card .change { font-size: 0.8rem; margin-top: 4px; }
+                .change.up { color: #10b981; }
+                .table-wrap { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+                table { width: 100%; border-collapse: collapse; }
+                th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid #f3f4f6; font-size: 0.9rem; }
+                th { color: #6b7280; font-weight: 600; }
+                .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+                .badge-success { background: #ecfdf5; color: #10b981; }
+                .badge-warning { background: #fffbeb; color: #f59e0b; }
+            </style>
+        </head>
+        <body>
+            <div class="dashboard">
+                <h1>📊 数据概览</h1>
+                <div class="stats">
+                    <div class="stat-card"><div class="label">总用户数</div><div class="value">12,847</div><div class="change up">↑ 12.5%</div></div>
+                    <div class="stat-card"><div class="label">活跃用户</div><div class="value">3,421</div><div class="change up">↑ 8.2%</div></div>
+                    <div class="stat-card"><div class="label">收入</div><div class="value">¥98,400</div><div class="change up">↑ 22.1%</div></div>
+                    <div class="stat-card"><div class="label">转化率</div><div class="value">3.24%</div><div class="change up">↑ 1.1%</div></div>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>项目</th><th>状态</th><th>进度</th></tr></thead>
+                        <tbody>
+                            <tr><td>首页改版</td><td><span class="badge badge-success">已完成</span></td><td>100%</td></tr>
+                            <tr><td>API优化</td><td><span class="badge badge-warning">进行中</span></td><td>65%</td></tr>
+                            <tr><td>数据分析</td><td><span class="badge badge-success">已完成</span></td><td>100%</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </body>
+        </html>`
+            };
+
+            // 初始化代码编辑器
+            const codeEditor = document.getElementById('htmlCodeEditor');
+            const savedCode = getData(STORAGE_KEYS.currentHtmlCode, null);
+            if (savedCode) {
+                codeEditor.value = savedCode;
+            } else {
+                codeEditor.value = defaultTemplates.basic;
+            }
+
+            // 自动保存代码
+            let autoSaveTimeout;
+            codeEditor.addEventListener('input', () => {
+                clearTimeout(autoSaveTimeout);
+                autoSaveTimeout = setTimeout(() => {
+                    setData(STORAGE_KEYS.currentHtmlCode, codeEditor.value);
+                }, 500);
+            });
+
+            function refreshPreview() {
+                const iframe = document.getElementById('previewFrame');
+                const code = codeEditor.value;
+                try {
+                    iframe.srcdoc = code;
+                } catch (e) {
+                    iframe.srcdoc = '<p style="color:red;padding:20px;">预览出错，请检查HTML代码</p>';
+                }
+                // 保存
+                setData(STORAGE_KEYS.currentHtmlCode, code);
+            }
+
+            function openInNewTab() {
+                const code = codeEditor.value;
+                if (!code.trim()) {
+                    showToast('⚠️ 请先输入HTML代码');
+                    return;
+                }
+                const blob = new Blob([code], { type: 'text/html;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
+                if (!newWindow) {
+                    showToast('⚠️ 弹窗被拦截，请允许弹窗后重试');
+                } else {
+                    showToast('✅ 已在新标签页打开');
+                }
+                // 延迟释放blob URL
+                setTimeout(() => URL.revokeObjectURL(url), 5000);
+            }
+
+            function downloadHTML() {
+                const code = codeEditor.value;
+                if (!code.trim()) {
+                    showToast('⚠️ 请先输入HTML代码');
+                    return;
+                }
+                const blob = new Blob([code], { type: 'text/html;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'generated-page.html';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showToast('💾 HTML文件下载中...');
+            }
+
+            function loadTemplate(templateName, chipEl) {
+                const code = defaultTemplates[templateName] || '';
+                codeEditor.value = code;
+                setData(STORAGE_KEYS.currentHtmlCode, code);
+                refreshPreview();
+                // 更新active状态
+                document.querySelectorAll('.template-chip').forEach(c => c.classList.remove('active-chip'));
+                if (chipEl) chipEl.classList.add('active-chip');
+                showToast(`📄 已加载模板：${templateName}`);
+            }
+
+            function formatCode() {
+                const code = codeEditor.value;
+                if (!code.trim()) return;
+                // 简单的HTML格式化
+                let formatted = code
+                    .replace(/></g, '>\n<')
+                    .replace(/\s*\n\s*\n\s*/g, '\n');
+                // 尝试缩进
+                const lines = formatted.split('\n');
+                let indent = 0;
+                const result = lines.map(line => {
+                    const trimmed = line.trim();
+                    if (!trimmed) return '';
+                    if (/^<\/\w/.test(trimmed)) indent = Math.max(0, indent - 1);
+                    const indented = '  '.repeat(indent) + trimmed;
+                    if (/^<\w[^>]*[^/]>$/.test(trimmed) && !/^<(br|hr|img|input|meta|link|area|base|col|embed|source|track|wbr)\b/i
+                        .test(trimmed)) {
+                        indent = Math.min(indent + 1, 10);
+                    }
+                    return indented;
+                }).join('\n');
+                codeEditor.value = result;
+                setData(STORAGE_KEYS.currentHtmlCode, result);
+                refreshPreview();
+                showToast('✨ 代码已格式化');
+            }
+
+            function saveTemplate() {
+                const code = codeEditor.value;
+                if (!code.trim()) {
+                    showToast('⚠️ 请先输入HTML代码');
+                    return;
+                }
+                const templates = getData(STORAGE_KEYS.htmlTemplates, []);
+                const name = prompt('给这个模板起个名字：', `模板_${templates.length + 1}`);
+                if (!name) return;
+                templates.push({ id: generateId(), name: name.trim(), code: code, createdAt: Date.now() });
+                setData(STORAGE_KEYS.htmlTemplates, templates);
+                showToast(`📌 模板"${name.trim()}"已保存`);
+            }
+
+            function loadSavedTemplate() {
+                const templates = getData(STORAGE_KEYS.htmlTemplates, []);
+                if (templates.length === 0) {
+                    showToast('📂 暂无已保存的模板');
+                    return;
+                }
+                const names = templates.map((t, i) => `${i + 1}. ${t.name} (${new Date(t.createdAt).toLocaleDateString('zh-CN')})`)
+                    .join('\n');
+                const choice = prompt(`已保存的模板：\n\n${names}\n\n输入序号来加载：`);
+                if (!choice) return;
+                const index = parseInt(choice) - 1;
+                if (index >= 0 && index < templates.length) {
+                    codeEditor.value = templates[index].code;
+                    setData(STORAGE_KEYS.currentHtmlCode, templates[index].code);
+                    refreshPreview();
+                    // 取消模板chips的active状态
+                    document.querySelectorAll('.template-chip').forEach(c => c.classList.remove('active-chip'));
+                    showToast(`📂 已加载模板：${templates[index].name}`);
+                } else {
+                    showToast('⚠️ 无效的序号');
+                }
+            }
+
+            // 初始刷新预览
+            setTimeout(refreshPreview, 300);
+
+            // ==================== 全局初始化 ====================
+            function init() {
+                renderUrlMemos();
+                renderMemos();
+                updateUrlCount();
+                updateMemoCount();
+                // 初始化生成器预览
+                setTimeout(refreshPreview, 400);
+            }
+
+            // 暴露函数到全局
+            window.openUrlMemoForm = openUrlMemoForm;
+            window.closeUrlMemoForm = closeUrlMemoForm;
+            window.saveUrlMemo = saveUrlMemo;
+            window.editUrlMemo = editUrlMemo;
+            window.deleteUrlMemo = deleteUrlMemo;
+            window.togglePasswordInput = togglePasswordInput;
+            window.togglePwdDisplay = togglePwdDisplay;
+            window.copyToClipboard = copyToClipboard;
+            window.openUrl = openUrl;
+            window.openMemoForm = openMemoForm;
+            window.closeMemoForm = closeMemoForm;
+            window.saveMemo = saveMemo;
+            window.editMemo = editMemo;
+            window.deleteMemo = deleteMemo;
+            window.refreshPreview = refreshPreview;
+            window.openInNewTab = openInNewTab;
+            window.downloadHTML = downloadHTML;
+            window.loadTemplate = loadTemplate;
+            window.formatCode = formatCode;
+            window.saveTemplate = saveTemplate;
+            window.loadSavedTemplate = loadSavedTemplate;
+
+            init();
+            console.log('✅ 个人工具箱已就绪 - 网址备忘录 | 备忘录 | 网页生成器');
+            console.log('💡 所有数据存储在浏览器localStorage中，不会丢失');
+        })();
+    </script>
+</body>
 </html>
